@@ -2,10 +2,97 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "The AWS CloudFormation template for this Serverless application",
   "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ServerlessDeploymentBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "ServerlessDeploymentBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      },
+                      "/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
     "NewOrderLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
         "LogGroupName": "/aws/lambda/pizzaApp-dev-newOrder"
+      }
+    },
+    "GetOrderLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/pizzaApp-dev-getOrder"
+      }
+    },
+    "PrepOrderLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/pizzaApp-dev-prepOrder"
+      }
+    },
+    "SendOrderLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/pizzaApp-dev-sendOrder"
       }
     },
     "IamRoleLambdaExecution": {
@@ -65,6 +152,46 @@
                       "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/pizzaApp-dev*:*:*"
                     }
                   ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:sendMessage"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "PendingOrderQueue",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:sendMessage"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "OrdersToSaveQueue",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "PendingOrderQueue",
+                        "Arn"
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -90,14 +217,24 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "S3Bucket": "serverless-framework-deployments-us-east-1-9a1661b7-f641",
-          "S3Key": "serverless/pizzaApp/dev/1774517933123-2026-03-26T09:38:53.123Z/pizzaApp.zip"
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/pizzaApp/dev/1774525618633-2026-03-26T11:46:58.633Z/pizzaApp.zip"
         },
         "Handler": "handler.newOrder",
         "Runtime": "nodejs20.x",
         "FunctionName": "pizzaApp-dev-newOrder",
         "MemorySize": 1024,
         "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "REGION": "eu-west-2",
+            "PENDING_ORDERS_QUEUE": {
+              "Ref": "PendingOrderQueue"
+            }
+          }
+        },
         "Role": {
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
@@ -109,14 +246,159 @@
         "NewOrderLogGroup"
       ]
     },
-    "NewOrderLambdaVersionrZfP0bpAZZ3socWtexGaKwf8AItwNo5OpVplKWoQ": {
+    "GetOrderLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/pizzaApp/dev/1774525618633-2026-03-26T11:46:58.633Z/pizzaApp.zip"
+        },
+        "Handler": "handler.getOrder",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "pizzaApp-dev-getOrder",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "REGION": "eu-west-2"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "GetOrderLogGroup"
+      ]
+    },
+    "PrepOrderLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/pizzaApp/dev/1774525618633-2026-03-26T11:46:58.633Z/pizzaApp.zip"
+        },
+        "Handler": "handler.prepOrder",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "pizzaApp-dev-prepOrder",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "REGION": "eu-west-2"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "PrepOrderLogGroup"
+      ]
+    },
+    "SendOrderLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/pizzaApp/dev/1774525618633-2026-03-26T11:46:58.633Z/pizzaApp.zip"
+        },
+        "Handler": "handler.sendOrder",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "pizzaApp-dev-sendOrder",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "REGION": "eu-west-2",
+            "ORDERS_TO_SEND_QUEUE": {
+              "Ref": "OrdersToSaveQueue"
+            }
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "SendOrderLogGroup"
+      ]
+    },
+    "NewOrderLambdaVersionN9EZy3zms4nR2xvXZYZWBqZJurQTgmGBvM4xEQ7U": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "NewOrderLambdaFunction"
         },
-        "CodeSha256": "A17n6zeHGikGgYbDu+g0P2BSGdQFqjnfbosnz8M/+OY="
+        "CodeSha256": "a6Z6vAi4e8mwj7dt0dVlSeaihswg0GZLoHFzNu9XQiI="
+      }
+    },
+    "GetOrderLambdaVersionDaIOiyIReTxalUsVtSHUNSAC7QrMIKSAiphVfcSQ": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "GetOrderLambdaFunction"
+        },
+        "CodeSha256": "a6Z6vAi4e8mwj7dt0dVlSeaihswg0GZLoHFzNu9XQiI="
+      }
+    },
+    "PrepOrderLambdaVersionMIh8UqWdrKWh22YJElhuZctxLt2M4zjk7SwoNylOQV8": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "PrepOrderLambdaFunction"
+        },
+        "CodeSha256": "a6Z6vAi4e8mwj7dt0dVlSeaihswg0GZLoHFzNu9XQiI="
+      }
+    },
+    "SendOrderLambdaVersionAvWt9ElhIlIOVVr3SsjZ8vqu8BFWrtJTAQ0bQoHjBR4": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "SendOrderLambdaFunction"
+        },
+        "CodeSha256": "a6Z6vAi4e8mwj7dt0dVlSeaihswg0GZLoHFzNu9XQiI="
+      }
+    },
+    "PrepOrderEventSourceMappingSQSPendingOrderQueue": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "DependsOn": [
+        "IamRoleLambdaExecution"
+      ],
+      "Properties": {
+        "BatchSize": 1,
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "PendingOrderQueue",
+            "Arn"
+          ]
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "PrepOrderLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Enabled": true
       }
     },
     "HttpApi": {
@@ -213,11 +495,100 @@
         }
       },
       "DependsOn": "HttpApiIntegrationNewOrder"
+    },
+    "GetOrderLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GetOrderLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationGetOrder": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "GetOrderLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetOrderOrderidVar": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /order/{orderId}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationGetOrder"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationGetOrder"
+    },
+    "PendingOrderQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "PendingOrderQueue"
+      }
+    },
+    "OrdersToSaveQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "OrdersToSaveQueue"
+      }
     }
   },
   "Outputs": {
     "ServerlessDeploymentBucketName": {
-      "Value": "serverless-framework-deployments-us-east-1-9a1661b7-f641",
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      },
       "Export": {
         "Name": "sls-pizzaApp-dev-ServerlessDeploymentBucketName"
       }
@@ -225,10 +596,37 @@
     "NewOrderLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "NewOrderLambdaVersionrZfP0bpAZZ3socWtexGaKwf8AItwNo5OpVplKWoQ"
+        "Ref": "NewOrderLambdaVersionN9EZy3zms4nR2xvXZYZWBqZJurQTgmGBvM4xEQ7U"
       },
       "Export": {
         "Name": "sls-pizzaApp-dev-NewOrderLambdaFunctionQualifiedArn"
+      }
+    },
+    "GetOrderLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "GetOrderLambdaVersionDaIOiyIReTxalUsVtSHUNSAC7QrMIKSAiphVfcSQ"
+      },
+      "Export": {
+        "Name": "sls-pizzaApp-dev-GetOrderLambdaFunctionQualifiedArn"
+      }
+    },
+    "PrepOrderLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "PrepOrderLambdaVersionMIh8UqWdrKWh22YJElhuZctxLt2M4zjk7SwoNylOQV8"
+      },
+      "Export": {
+        "Name": "sls-pizzaApp-dev-PrepOrderLambdaFunctionQualifiedArn"
+      }
+    },
+    "SendOrderLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "SendOrderLambdaVersionAvWt9ElhIlIOVVr3SsjZ8vqu8BFWrtJTAQ0bQoHjBR4"
+      },
+      "Export": {
+        "Name": "sls-pizzaApp-dev-SendOrderLambdaFunctionQualifiedArn"
       }
     },
     "HttpApiId": {
