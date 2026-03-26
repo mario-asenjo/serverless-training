@@ -1,0 +1,87 @@
+{
+  "/root/serverless/serverless-pizza/serverless.yml": {
+    "versionFramework": "4.33.0",
+    "servicePath": "/root/serverless/serverless-pizza/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "pizzaApp",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs20.x",
+        "stage": "dev",
+        "region": "us-east-1",
+        "versionFunctions": true
+      },
+      "functions": {
+        "newOrder": {
+          "handler": "handler.newOrder",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/order",
+                "method": "post"
+              }
+            }
+          ],
+          "name": "pizzaApp-dev-newOrder"
+        }
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs20.x",
+      "stage": "dev",
+      "region": "us-east-1",
+      "versionFunctions": true
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "service: pizzaApp\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n\nfunctions:\n  newOrder:\n    handler: handler.newOrder\n    events:\n      - httpApi:\n          path: /order\n          method: post\n",
+    "command": [
+      "remove"
+    ],
+    "options": {},
+    "orgId": "e7525589-7e79-40f2-bcc5-e6cd4daf816c",
+    "orgName": "marioasenjo",
+    "userId": "HPvmqnzxQZFtZGk96v",
+    "userName": "marioasenjo",
+    "serviceProviderAwsAccountId": "203475185302",
+    "serviceProviderAwsCfStackName": "pizzaApp-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:203475185302:stack/pizzaApp-dev/9d706ce0-28f7-11f1-a3c9-0afffd2fb801",
+    "serviceProviderAwsCfStackCreated": "2026-03-26T09:38:58.967Z",
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": "CREATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "HttpApiId",
+        "OutputValue": "o3gqop4oa4",
+        "Description": "Id of the HTTP API",
+        "ExportName": "sls-pizzaApp-dev-HttpApiId"
+      },
+      {
+        "OutputKey": "NewOrderLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-1:203475185302:function:pizzaApp-dev-newOrder:2",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-pizzaApp-dev-NewOrderLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-us-east-1-9a1661b7-f641",
+        "ExportName": "sls-pizzaApp-dev-ServerlessDeploymentBucketName"
+      },
+      {
+        "OutputKey": "HttpApiUrl",
+        "OutputValue": "https://o3gqop4oa4.execute-api.us-east-1.amazonaws.com",
+        "Description": "URL of the HTTP API",
+        "ExportName": "sls-pizzaApp-dev-HttpApiUrl"
+      }
+    ]
+  }
+}

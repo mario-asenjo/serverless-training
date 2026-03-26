@@ -1,0 +1,88 @@
+{
+  "/root/serverless-framework-practice/serverless.yml": {
+    "versionFramework": "4.33.0",
+    "servicePath": "/root/serverless-framework-practice/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "org": "marioasenjo",
+      "service": "test",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs20.x",
+        "stage": "dev",
+        "region": "us-east-1",
+        "versionFunctions": true
+      },
+      "functions": {
+        "hello": {
+          "handler": "handler.hello",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/",
+                "method": "get"
+              }
+            }
+          ],
+          "name": "test-dev-hello"
+        }
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs20.x",
+      "stage": "dev",
+      "region": "us-east-1",
+      "versionFunctions": true
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "# \"org\" ensures this Service is used with the correct Serverless Framework Access Key.\norg: marioasenjo\nservice: test\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n\nfunctions:\n  hello:\n    handler: handler.hello\n    events:\n      - httpApi:\n          path: /\n          method: get\n",
+    "command": [
+      "remove"
+    ],
+    "options": {},
+    "orgId": "e7525589-7e79-40f2-bcc5-e6cd4daf816c",
+    "orgName": "marioasenjo",
+    "userId": "HPvmqnzxQZFtZGk96v",
+    "userName": "marioasenjo",
+    "serviceProviderAwsAccountId": "203475185302",
+    "serviceProviderAwsCfStackName": "test-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:203475185302:stack/test-dev/69e76a90-28ed-11f1-8453-0e05a5561101",
+    "serviceProviderAwsCfStackCreated": "2026-03-26T08:25:57.551Z",
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": "CREATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "HelloLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-1:203475185302:function:test-dev-hello:1",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-test-dev-HelloLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "HttpApiId",
+        "OutputValue": "p1arlvq6ol",
+        "Description": "Id of the HTTP API",
+        "ExportName": "sls-test-dev-HttpApiId"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-us-east-1-9a1661b7-f641",
+        "ExportName": "sls-test-dev-ServerlessDeploymentBucketName"
+      },
+      {
+        "OutputKey": "HttpApiUrl",
+        "OutputValue": "https://p1arlvq6ol.execute-api.us-east-1.amazonaws.com",
+        "Description": "URL of the HTTP API",
+        "ExportName": "sls-test-dev-HttpApiUrl"
+      }
+    ]
+  }
+}
